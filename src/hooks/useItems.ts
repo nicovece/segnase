@@ -33,6 +33,63 @@ export function useItems(listId: string) {
     }
   }, [listId])
 
+  // Real-time subscription
+  useEffect(() => {
+    if (!listId) return
+
+    const channel = supabase
+      .channel(`items-${listId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'items',
+          filter: `list_id=eq.${listId}`,
+        },
+        (payload) => {
+          setItems((prev) => {
+            // Avoid duplicates (in case we already added it optimistically)
+            if (prev.some((item) => item.id === payload.new.id)) return prev
+            return [...prev, payload.new as Item]
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'items',
+          filter: `list_id=eq.${listId}`,
+        },
+        (payload) => {
+          setItems((prev) =>
+            prev.map((item) =>
+              item.id === payload.new.id ? (payload.new as Item) : item
+            )
+          )
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'items',
+          filter: `list_id=eq.${listId}`,
+        },
+        (payload) => {
+          setItems((prev) => prev.filter((item) => item.id !== payload.old.id))
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [listId])
+
   const addItem = async (name: string, quantity?: string, notes?: string) => {
     const { data: { user } } = await supabase.auth.getUser()
 
