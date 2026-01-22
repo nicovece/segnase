@@ -5,6 +5,7 @@ import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { Lists } from './pages/Lists'
 import { List } from './pages/List'
+import { JoinList } from './pages/JoinList'
 
 function App() {
   const { user, loading } = useAuth()
@@ -43,6 +44,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/join/:token" element={<JoinList />} />
     </Routes>
   )
 }
