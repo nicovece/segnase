@@ -4,17 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
 import { Lists } from './pages/Lists'
-
-// Placeholder - we'll build this in step 8
-function ListDetail() {
-  return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-md mx-auto">
-        <p className="text-gray-500">List detail page coming next...</p>
-      </div>
-    </div>
-  )
-}
+import { List } from './pages/List'
 
 function App() {
   const { user, loading } = useAuth()
@@ -49,7 +39,7 @@ function App() {
         path="/list/:id"
         element={
           <ProtectedRoute>
-            <ListDetail />
+            <List />
           </ProtectedRoute>
         }
       />

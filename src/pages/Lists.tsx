@@ -10,12 +10,26 @@ export function Lists() {
   const [creating, setCreating] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
 
+  const formatDateTime = (date: Date) => {
+    const day = date.getDate()
+    const month = date.toLocaleString('en', { month: 'short' })
+    const hours = date.getHours().toString().padStart(2, '0')
+    const minutes = date.getMinutes().toString().padStart(2, '0')
+    return `${day} ${month}, ${hours}:${minutes}`
+  }
+
+  const todayDate = formatDateTime(new Date())
+
+  const handleShowCreateForm = () => {
+    setNewListName(todayDate)
+    setShowCreateForm(true)
+  }
+
   const handleCreateList = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newListName.trim()) return
 
     setCreating(true)
-    const { error } = await createList(newListName.trim())
+    const { error } = await createList(newListName.trim() || undefined)
 
     if (!error) {
       setNewListName('')
@@ -56,7 +70,7 @@ export function Lists() {
           <h2 className="text-lg font-semibold text-gray-900">My Lists</h2>
           {!showCreateForm && (
             <button
-              onClick={() => setShowCreateForm(true)}
+              onClick={handleShowCreateForm}
               className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
             >
               New list
@@ -78,7 +92,7 @@ export function Lists() {
               />
               <button
                 type="submit"
-                disabled={creating || !newListName.trim()}
+                disabled={creating}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {creating ? '...' : 'Create'}
@@ -94,6 +108,9 @@ export function Lists() {
                 Cancel
               </button>
             </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Leave as current date/time or enter a custom name
+            </p>
           </form>
         )}
 
@@ -115,7 +132,7 @@ export function Lists() {
             <p className="text-gray-500 mb-4">No lists yet</p>
             {!showCreateForm && (
               <button
-                onClick={() => setShowCreateForm(true)}
+                onClick={handleShowCreateForm}
                 className="text-blue-600 hover:underline"
               >
                 Create your first list

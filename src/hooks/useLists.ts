@@ -36,8 +36,15 @@ export function useLists() {
       return { error: new Error('Not authenticated') }
     }
 
-    // Default to today's date if no name provided
-    const listName = name?.trim() || new Date().toLocaleDateString()
+    // Default to current date/time if no name provided
+    const formatDateTime = (date: Date) => {
+      const day = date.getDate()
+      const month = date.toLocaleString('en', { month: 'short' })
+      const hours = date.getHours().toString().padStart(2, '0')
+      const minutes = date.getMinutes().toString().padStart(2, '0')
+      return `${day} ${month}, ${hours}:${minutes}`
+    }
+    const listName = name?.trim() || formatDateTime(new Date())
 
     const { data, error } = await supabase
       .from('lists')
