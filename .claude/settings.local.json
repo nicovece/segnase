@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(pnpm approve-builds:*)",
-      "Bash(pnpm run build:*)"
+      "Bash(pnpm run build:*)",
+      "Bash(curl:*)"
     ]
   }
 }

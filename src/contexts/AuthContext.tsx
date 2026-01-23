@@ -85,23 +85,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
-        await fetchProfile(session.user.id)
-        processPendingInvites(session.user)
+        // Fetch profile but don't block on it
+        fetchProfile(session.user.id).catch(console.error)
+        processPendingInvites(session.user).catch(console.error)
       }
+      setLoading(false)
+    }).catch((error) => {
+      console.error('Failed to get session:', error)
       setLoading(false)
     })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
 
         if (session?.user) {
-          await fetchProfile(session.user.id)
-          // Process invites on sign in
+          fetchProfile(session.user.id).catch(console.error)
           if (event === 'SIGNED_IN') {
-            processPendingInvites(session.user)
+            processPendingInvites(session.user).catch(console.error)
           }
         } else {
           setProfile(null)
