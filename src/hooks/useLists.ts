@@ -29,6 +29,57 @@ export function useLists() {
     fetchLists()
   }, [])
 
+  // Real-time subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('lists')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'lists',
+        },
+        (payload) => {
+          setLists((prev) => {
+            if (prev.some((list) => list.id === payload.new.id)) return prev
+            return [payload.new as List, ...prev]
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'lists',
+        },
+        (payload) => {
+          setLists((prev) =>
+            prev.map((list) =>
+              list.id === payload.new.id ? (payload.new as List) : list
+            )
+          )
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'lists',
+        },
+        (payload) => {
+          setLists((prev) => prev.filter((list) => list.id !== payload.old.id))
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
   const createList = async (name?: string) => {
     const { data: { user } } = await supabase.auth.getUser()
 
