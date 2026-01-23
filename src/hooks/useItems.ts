@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Item } from '../lib/types'
+import { uploadItemImage, deleteItemImage, deleteAllItemImages } from '../lib/imageUpload'
 
 export function useItems(listId: string) {
   const [items, setItems] = useState<Item[]>([])
@@ -90,7 +91,7 @@ export function useItems(listId: string) {
     }
   }, [listId])
 
-  const addItem = async (name: string, quantity?: string, notes?: string) => {
+  const addItem = async (name: string, quantity?: string, notes?: string, imageFile?: File) => {
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
@@ -119,11 +120,31 @@ export function useItems(listId: string) {
       return { error }
     }
 
+    // Upload image if provided
+    let imageUrl: string | null = null
+    if (imageFile) {
+      const { url, error: uploadError } = await uploadItemImage(imageFile, data.id)
+      if (uploadError) {
+        console.error('Failed to upload image:', uploadError)
+      } else {
+        imageUrl = url
+        // Update item with image URL
+        const { error: updateError } = await supabase
+          .from('items')
+          .update({ image_url: imageUrl })
+          .eq('id', data.id)
+
+        if (!updateError) {
+          data.image_url = imageUrl
+        }
+      }
+    }
+
     setItems((prev) => [...prev, data])
     return { data, error: null }
   }
 
-  const updateItem = async (id: string, updates: Partial<Pick<Item, 'name' | 'quantity' | 'notes' | 'checked'>>) => {
+  const updateItem = async (id: string, updates: Partial<Pick<Item, 'name' | 'quantity' | 'notes' | 'checked' | 'image_url'>>) => {
     const { data, error } = await supabase
       .from('items')
       .update({ ...updates, updated_at: new Date().toISOString() })
@@ -147,6 +168,9 @@ export function useItems(listId: string) {
   }
 
   const deleteItem = async (id: string) => {
+    // Delete images from storage first
+    await deleteAllItemImages(id)
+
     const { error } = await supabase
       .from('items')
       .delete()
@@ -160,6 +184,29 @@ export function useItems(listId: string) {
     return { error: null }
   }
 
+  const uploadImage = async (itemId: string, imageFile: File) => {
+    const { url, error: uploadError } = await uploadItemImage(imageFile, itemId)
+    if (uploadError) {
+      return { error: uploadError }
+    }
+
+    return updateItem(itemId, { image_url: url })
+  }
+
+  const removeImage = async (itemId: string) => {
+    const item = items.find((i) => i.id === itemId)
+    if (!item?.image_url) {
+      return { error: null }
+    }
+
+    const { error: deleteError } = await deleteItemImage(item.image_url)
+    if (deleteError) {
+      console.error('Failed to delete image from storage:', deleteError)
+    }
+
+    return updateItem(itemId, { image_url: null })
+  }
+
   return {
     items,
     loading,
@@ -168,6 +215,8 @@ export function useItems(listId: string) {
     updateItem,
     toggleItem,
     deleteItem,
+    uploadImage,
+    removeImage,
     refetch: fetchItems,
   }
 }
