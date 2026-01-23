@@ -1,7 +1,10 @@
+export type Theme = 'light' | 'dark' | 'system'
+
 export type Profile = {
   id: string
   email: string
   display_name: string | null
+  theme_preference: Theme
   created_at: string
   updated_at: string
 }

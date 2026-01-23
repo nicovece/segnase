@@ -6,14 +6,15 @@ import { Register } from './pages/Register'
 import { Lists } from './pages/Lists'
 import { List } from './pages/List'
 import { JoinList } from './pages/JoinList'
+import { Settings } from './pages/Settings'
 
 function App() {
   const { user, loading } = useAuth()
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
       </div>
     )
   }
@@ -41,6 +42,14 @@ function App() {
         element={
           <ProtectedRoute>
             <List />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         }
       />

@@ -1,14 +1,19 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import type { Profile } from '../lib/types'
 
 type AuthContextType = {
   user: User | null
   session: Session | null
+  profile: Profile | null
   loading: boolean
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
+  updateProfile: (updates: Partial<Pick<Profile, 'display_name' | 'theme_preference'>>) => Promise<{ error: Error | null }>
+  updatePassword: (newPassword: string) => Promise<{ error: Error | null }>
+  deleteAccount: () => Promise<{ error: Error | null }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -16,7 +21,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Fetch user profile
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (!error && data) {
+      setProfile(data as Profile)
+    }
+    return data as Profile | null
+  }
 
   // Process pending email invites for a user
   const processPendingInvites = async (user: User) => {
@@ -61,10 +81,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
+        await fetchProfile(session.user.id)
         processPendingInvites(session.user)
       }
       setLoading(false)
@@ -72,12 +93,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
-        // Process invites on sign in
-        if (event === 'SIGNED_IN' && session?.user) {
-          processPendingInvites(session.user)
+
+        if (session?.user) {
+          await fetchProfile(session.user.id)
+          // Process invites on sign in
+          if (event === 'SIGNED_IN') {
+            processPendingInvites(session.user)
+          }
+        } else {
+          setProfile(null)
         }
       }
     )
@@ -96,11 +123,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
+    setProfile(null)
     await supabase.auth.signOut()
   }
 
+  const updateProfile = async (updates: Partial<Pick<Profile, 'display_name' | 'theme_preference'>>) => {
+    if (!user) return { error: new Error('Not authenticated') }
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', user.id)
+
+    if (!error) {
+      setProfile(prev => prev ? { ...prev, ...updates } : null)
+    }
+
+    return { error }
+  }
+
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    return { error }
+  }
+
+  const deleteAccount = async () => {
+    if (!user) return { error: new Error('Not authenticated') }
+
+    // Delete user's data first (lists they own, etc.)
+    // Note: RLS policies should cascade delete list_members when lists are deleted
+    // But we need to delete lists owned by this user
+    const { error: listsError } = await supabase
+      .from('lists')
+      .delete()
+      .eq('created_by', user.id)
+
+    if (listsError) {
+      return { error: listsError }
+    }
+
+    // Remove from list_members (where they're not owner)
+    await supabase
+      .from('list_members')
+      .delete()
+      .eq('user_id', user.id)
+
+    // Delete profile
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', user.id)
+
+    if (profileError) {
+      return { error: profileError }
+    }
+
+    // Sign out (this won't delete the auth user, but they won't be able to use the app)
+    // Note: Deleting auth.users requires admin access or a server function
+    await supabase.auth.signOut()
+
+    return { error: null }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{
+      user,
+      session,
+      profile,
+      loading,
+      signUp,
+      signIn,
+      signOut,
+      updateProfile,
+      updatePassword,
+      deleteAccount
+    }}>
       {children}
     </AuthContext.Provider>
   )

@@ -16,13 +16,13 @@ function ItemRow({
   onDelete: () => void
 }) {
   return (
-    <li className={`flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg ${item.checked ? 'opacity-60' : ''}`}>
+    <li className={`flex items-start gap-3 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg ${item.checked ? 'opacity-60' : ''}`}>
       <button
         onClick={onToggle}
         className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 ${
           item.checked
             ? 'bg-blue-600 border-blue-600 text-white'
-            : 'border-gray-300 hover:border-blue-500'
+            : 'border-gray-300 dark:border-gray-600 hover:border-blue-500'
         }`}
       >
         {item.checked && (
@@ -34,23 +34,23 @@ function ItemRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">
-          <span className={`font-medium ${item.checked ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+          <span className={`font-medium ${item.checked ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
             {item.name}
           </span>
           {item.quantity && (
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {item.quantity}
             </span>
           )}
         </div>
         {item.notes && (
-          <p className="text-sm text-gray-500 mt-0.5">{item.notes}</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{item.notes}</p>
         )}
       </div>
 
       <button
         onClick={onDelete}
-        className="text-gray-400 hover:text-red-600 p-1 flex-shrink-0"
+        className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-1 flex-shrink-0"
         title="Delete item"
       >
         <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
@@ -89,12 +89,12 @@ function AddItemForm({ onAdd }: { onAdd: (name: string, quantity?: string, notes
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Add item..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
         />
         <button
           type="button"
           onClick={() => setShowDetails(!showDetails)}
-          className={`px-3 py-2 border rounded-lg ${showDetails ? 'border-blue-500 text-blue-600' : 'border-gray-300 text-gray-600'} hover:border-blue-500`}
+          className={`px-3 py-2 border rounded-lg ${showDetails ? 'border-blue-500 text-blue-600' : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400'} hover:border-blue-500`}
           title="Add details"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -117,14 +117,14 @@ function AddItemForm({ onAdd }: { onAdd: (name: string, quantity?: string, notes
             value={quantity}
             onChange={(e) => setQuantity(e.target.value)}
             placeholder="Quantity (e.g., 2 liters)"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
           <input
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Notes"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
       )}
@@ -214,20 +214,20 @@ export function List() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-500 dark:text-gray-400">Loading...</div>
       </div>
     )
   }
 
   if (error || !list) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
         <div className="max-w-md mx-auto">
-          <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg mb-4">
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg mb-4">
             {error || 'List not found'}
           </div>
-          <Link to="/" className="text-blue-600 hover:underline">
+          <Link to="/" className="text-blue-600 dark:text-blue-400 hover:underline">
             Back to lists
           </Link>
         </div>
@@ -239,25 +239,25 @@ export function List() {
   const checkedItems = items.filter((i) => i.checked)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
         <div className="max-w-md mx-auto">
           <div className="flex items-center gap-3">
-            <Link to="/" className="text-gray-600 hover:text-gray-900">
+            <Link to="/" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-gray-900">{list.name}</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">{list.name}</h1>
               {list.notes && (
-                <p className="text-sm text-gray-500">{list.notes}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{list.notes}</p>
               )}
             </div>
             <button
               onClick={() => setShowShareModal(true)}
-              className="p-2 text-gray-500 hover:text-blue-600"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
               title="Share list"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -266,10 +266,10 @@ export function List() {
             </button>
             <span className={`px-2 py-1 text-xs font-medium rounded-full ${
               list.status === 'completed'
-                ? 'bg-green-100 text-green-700'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                 : list.status === 'archived'
-                ? 'bg-gray-100 text-gray-600'
-                : 'bg-blue-100 text-blue-700'
+                ? 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
             }`}>
               {list.status}
             </span>
@@ -280,12 +280,12 @@ export function List() {
       {/* Share Modal */}
       {showShareModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-sm w-full p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Share list</h2>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Share list</h2>
               <button
                 onClick={() => setShowShareModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -295,8 +295,8 @@ export function List() {
 
             {/* Share link section */}
             <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Share link</h3>
-              <p className="text-xs text-gray-500 mb-2">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Share link</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 Anyone with this link can join and edit this list.
               </p>
               <div className="flex gap-2">
@@ -304,7 +304,7 @@ export function List() {
                   type="text"
                   readOnly
                   value={shareUrl}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm text-gray-600"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-sm text-gray-600 dark:text-gray-300"
                 />
                 <button
                   onClick={handleCopyLink}
@@ -316,9 +316,9 @@ export function List() {
             </div>
 
             {/* Email invite section */}
-            <div className="border-t border-gray-200 pt-4">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Invite by email</h3>
-              <p className="text-xs text-gray-500 mb-2">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Invite by email</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 They'll get access when they sign in with this email.
               </p>
               <form onSubmit={handleInvite} className="flex gap-2">
@@ -327,7 +327,7 @@ export function List() {
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="email@example.com"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
                 <button
                   type="submit"
@@ -338,10 +338,10 @@ export function List() {
                 </button>
               </form>
               {inviteStatus === 'success' && (
-                <p className="text-xs text-green-600 mt-2">Invite sent!</p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-2">Invite sent!</p>
               )}
               {inviteStatus === 'error' && (
-                <p className="text-xs text-red-600 mt-2">{inviteError}</p>
+                <p className="text-xs text-red-600 dark:text-red-400 mt-2">{inviteError}</p>
               )}
             </div>
           </div>
@@ -352,11 +352,11 @@ export function List() {
       <main className="max-w-md mx-auto p-4">
         {/* Status actions */}
         {list.status === 'archived' ? (
-          <div className="mb-4 p-3 bg-gray-100 rounded-lg flex items-center justify-between">
-            <span className="text-sm text-gray-600">This list is archived</span>
+          <div className="mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-between">
+            <span className="text-sm text-gray-600 dark:text-gray-400">This list is archived</span>
             <button
               onClick={handleActivate}
-              className="text-sm text-blue-600 hover:underline font-medium"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
             >
               Restore
             </button>
@@ -365,7 +365,7 @@ export function List() {
           <div className="mb-4 flex justify-end">
             <button
               onClick={handleArchive}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             >
               Archive list
             </button>
@@ -379,7 +379,7 @@ export function List() {
 
         {/* Items list */}
         {items.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             No items yet. Add your first item above.
           </div>
         ) : (
@@ -401,7 +401,7 @@ export function List() {
             {/* Checked items */}
             {checkedItems.length > 0 && (
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-2">
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
                   Checked ({checkedItems.length})
                 </h3>
                 <ul className="space-y-2">
