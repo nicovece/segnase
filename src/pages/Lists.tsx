@@ -45,18 +45,24 @@ export function Lists() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 py-3">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
         <div className="max-w-md mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">Segnase</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Segnase</h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500 hidden sm:inline">
+            <span className="text-sm text-gray-500 dark:text-gray-400 hidden sm:inline">
               {user?.email}
             </span>
+            <Link
+              to="/settings"
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+            >
+              Settings
+            </Link>
             <button
               onClick={signOut}
-              className="text-sm text-gray-600 hover:text-gray-900"
+              className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
             >
               Sign out
             </button>
@@ -67,7 +73,7 @@ export function Lists() {
       {/* Main content */}
       <main className="max-w-md mx-auto p-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">My Lists</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">My Lists</h2>
           {!showCreateForm && (
             <button
               onClick={handleShowCreateForm}
@@ -88,7 +94,7 @@ export function Lists() {
                 onChange={(e) => setNewListName(e.target.value)}
                 placeholder="List name"
                 autoFocus
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               />
               <button
                 type="submit"
@@ -103,12 +109,12 @@ export function Lists() {
                   setShowCreateForm(false)
                   setNewListName('')
                 }}
-                className="px-4 py-2 text-gray-600 hover:text-gray-900"
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               >
                 Cancel
               </button>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               Leave as current date/time or enter a custom name
             </p>
           </form>
@@ -116,24 +122,24 @@ export function Lists() {
 
         {/* Error state */}
         {error && (
-          <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm mb-4">
+          <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm mb-4">
             {error}
           </div>
         )}
 
         {/* Loading state */}
         {loading && (
-          <div className="text-center py-12 text-gray-500">Loading...</div>
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">Loading...</div>
         )}
 
         {/* Empty state */}
         {!loading && lists.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">No lists yet</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-4">No lists yet</p>
             {!showCreateForm && (
               <button
                 onClick={handleShowCreateForm}
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 dark:text-blue-400 hover:underline"
               >
                 Create your first list
               </button>
@@ -147,18 +153,18 @@ export function Lists() {
             {lists.map((list) => (
               <li
                 key={list.id}
-                className="bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
               >
                 <div className="flex items-center justify-between p-4">
                   <Link
                     to={`/list/${list.id}`}
-                    className="flex-1 font-medium text-gray-900 hover:text-blue-600"
+                    className="flex-1 font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
                   >
                     {list.name}
                   </Link>
                   <button
                     onClick={() => handleDeleteList(list.id, list.name)}
-                    className="text-gray-400 hover:text-red-600 p-1"
+                    className="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-1"
                     title="Delete list"
                   >
                     <svg
