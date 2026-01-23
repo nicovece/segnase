@@ -18,19 +18,67 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Process pending email invites for a user
+  const processPendingInvites = async (user: User) => {
+    if (!user.email) return
+
+    // Find invites for this email
+    const { data: invites } = await supabase
+      .from('list_invites')
+      .select('id, list_id')
+      .eq('email', user.email.toLowerCase())
+
+    if (!invites || invites.length === 0) return
+
+    // Add user to each list and delete the invite
+    for (const invite of invites) {
+      // Check if already a member
+      const { data: existing } = await supabase
+        .from('list_members')
+        .select('list_id')
+        .eq('list_id', invite.list_id)
+        .eq('user_id', user.id)
+        .single()
+
+      if (!existing) {
+        // Add as editor
+        await supabase
+          .from('list_members')
+          .insert({
+            list_id: invite.list_id,
+            user_id: user.id,
+            role: 'editor',
+          })
+      }
+
+      // Delete the invite
+      await supabase
+        .from('list_invites')
+        .delete()
+        .eq('id', invite.id)
+    }
+  }
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
+      if (session?.user) {
+        processPendingInvites(session.user)
+      }
       setLoading(false)
     })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
+        // Process invites on sign in
+        if (event === 'SIGNED_IN' && session?.user) {
+          processPendingInvites(session.user)
+        }
       }
     )
 

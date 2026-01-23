@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useList } from '../hooks/useList'
 import { useItems } from '../hooks/useItems'
+import { useAuth } from '../contexts/AuthContext'
+import { supabase } from '../lib/supabase'
 import type { Item } from '../lib/types'
 
 function ItemRow({
@@ -132,10 +134,15 @@ function AddItemForm({ onAdd }: { onAdd: (name: string, quantity?: string, notes
 
 export function List() {
   const { id } = useParams<{ id: string }>()
+  const { user } = useAuth()
   const { list, loading: listLoading, error: listError, archiveList, activateList, refetch: refetchList } = useList(id!)
   const { items, loading: itemsLoading, error: itemsError, addItem, toggleItem, deleteItem } = useItems(id!)
   const [showShareModal, setShowShareModal] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviting, setInviting] = useState(false)
+  const [inviteStatus, setInviteStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [inviteError, setInviteError] = useState<string | null>(null)
 
   const loading = listLoading || itemsLoading
   const error = listError || itemsError
@@ -171,6 +178,38 @@ export function List() {
     await navigator.clipboard.writeText(shareUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleInvite = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inviteEmail.trim() || !user || !list) return
+
+    setInviting(true)
+    setInviteStatus('idle')
+    setInviteError(null)
+
+    const { error } = await supabase
+      .from('list_invites')
+      .insert({
+        list_id: list.id,
+        email: inviteEmail.trim().toLowerCase(),
+        invited_by: user.id,
+      })
+
+    if (error) {
+      if (error.code === '23505') {
+        setInviteError('This email has already been invited')
+      } else {
+        setInviteError(error.message)
+      }
+      setInviteStatus('error')
+    } else {
+      setInviteStatus('success')
+      setInviteEmail('')
+      setTimeout(() => setInviteStatus('idle'), 3000)
+    }
+
+    setInviting(false)
   }
 
   if (loading) {
@@ -253,22 +292,57 @@ export function List() {
                 </svg>
               </button>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
-              Anyone with this link can join and edit this list.
-            </p>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                readOnly
-                value={shareUrl}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm text-gray-600"
-              />
-              <button
-                onClick={handleCopyLink}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-sm"
-              >
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
+
+            {/* Share link section */}
+            <div className="mb-6">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Share link</h3>
+              <p className="text-xs text-gray-500 mb-2">
+                Anyone with this link can join and edit this list.
+              </p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={shareUrl}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-sm text-gray-600"
+                />
+                <button
+                  onClick={handleCopyLink}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-sm"
+                >
+                  {copied ? 'Copied!' : 'Copy'}
+                </button>
+              </div>
+            </div>
+
+            {/* Email invite section */}
+            <div className="border-t border-gray-200 pt-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-2">Invite by email</h3>
+              <p className="text-xs text-gray-500 mb-2">
+                They'll get access when they sign in with this email.
+              </p>
+              <form onSubmit={handleInvite} className="flex gap-2">
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="email@example.com"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={inviting || !inviteEmail.trim()}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {inviting ? '...' : 'Invite'}
+                </button>
+              </form>
+              {inviteStatus === 'success' && (
+                <p className="text-xs text-green-600 mt-2">Invite sent!</p>
+              )}
+              {inviteStatus === 'error' && (
+                <p className="text-xs text-red-600 mt-2">{inviteError}</p>
+              )}
             </div>
           </div>
         </div>
