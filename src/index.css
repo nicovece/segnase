@@ -3,6 +3,11 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Fix iOS PWA standalone mode input focus issues */
+html, body {
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
+}
+
 input,
 textarea,
 select,
@@ -10,6 +15,15 @@ button {
   -webkit-user-select: auto;
   user-select: auto;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ensure inputs are interactive on iOS */
+input:not([disabled]),
+textarea:not([disabled]),
+select:not([disabled]) {
+  cursor: text;
+  pointer-events: auto;
 }
 
 /* Prevent iOS from zooming on input focus */
