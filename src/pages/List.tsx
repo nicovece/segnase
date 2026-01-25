@@ -791,8 +791,8 @@ export function List() {
           item={editingItem}
           onClose={() => setEditingItem(null)}
           onSave={(updates) => handleEditItem(editingItem.id, updates)}
-          onRemoveImage={() => removeImage(editingItem.id)}
-          onUploadImage={(file) => uploadImage(editingItem.id, file)}
+          onRemoveImage={async () => { await removeImage(editingItem.id) }}
+          onUploadImage={async (file) => { await uploadImage(editingItem.id, file) }}
         />
       )}
 
